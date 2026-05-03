@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0a">
+<title>Morning Brief</title>
+<link rel="manifest" href="#" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0a;
+    --ink-light: #1a1a1a;
+    --ink-mid: #2e2e2e;
+    --paper: #f5f0e8;
+    --paper-dim: #e8e2d6;
+    --gold: #c9a84c;
+    --gold-dim: #8a6f2e;
+    --red: #c0392b;
+    --smoke: #888;
+    --white: #fff;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-sans: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ─── SPLASH ─── */
+  #splash {
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  #splash::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 100%, #c9a84c18, transparent);
+  }
+  .splash-lines {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 39px, #ffffff08 39px, #ffffff08 40px);
+  }
+  .splash-content {
+    text-align: center;
+    z-index: 2;
+    animation: fadeUp .8s ease forwards;
+  }
+  .splash-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .splash-title {
+    font-family: var(--font-serif);
+    font-size: clamp(52px, 10vw, 88px);
+    font-weight: 900;
+    line-height: .95;
+    color: var(--paper);
+    margin-bottom: 8px;
+  }
+  .splash-title span { color: var(--gold); font-style: italic; }
+  .splash-subtitle {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--smoke);
+    letter-spacing: 1px;
+    margin-bottom: 52px;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    padding: 14px 36px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .2s;
+    font-weight: 500;
+  }
+  .btn-primary:hover { background: var(--paper); transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--smoke);
+    border: 1px solid #333;
+    padding: 12px 28px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ─── ONBOARDING ─── */
+  #onboarding {
+    background: var(--ink);
+    flex-direction: column;
+  }
+  .onboard-header {
+    padding: 32px 28px 0;
+    border-bottom: 1px solid #1e1e1e;
+  }
+  .onboard-step {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .onboard-title {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .onboard-desc {
+    font-size: 13px;
+    color: var(--smoke);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .progress-bar {
+    height: 2px;
+    background: #1e1e1e;
+    position: relative;
+    margin: 0 -28px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    transition: width .4s ease;
+  }
+  .onboard-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+  }
+
+  /* Category grid */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .cat-card {
+    border: 1px solid #222;
+    padding: 18px 14px;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+    overflow: hidden;
+    background: var(--ink-light);
+  }
+  .cat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .cat-card.selected { border-color: var(--gold); }
+  .cat-card.selected::before { opacity: .08; }
+  .cat-card.selected .cat-check { opacity: 1; }
+  .cat-icon { font-size: 26px; margin-bottom: 8px; position: relative; z-index: 1; }
+  .cat-name {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 3px;
+  }
+  .cat-sub {
+    font-size: 11px;
+    color: var(--smoke);
+    position: relative;
+    z-index: 1;
+  }
+  .cat-check {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 18px; height: 18px;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity .2s;
+    z-index: 1;
+  }
+
+  /* Sub-category tags */
+  .subcats-section { margin-bottom: 24px; }
+  .subcats-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #1e1e1e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subcats-label span { font-size: 16px; }
+  .tags-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    padding: 7px 14px;
+    border: 1px solid #2a2a2a;
+    font-size: 12px;
+    color: var(--smoke);
+    cursor: pointer;
+    transition: all .2s;
+    font-family: var(--font-sans);
+    background: var(--ink-light);
+  }
+  .tag:hover { border-color: #444; color: var(--paper); }
+  .tag.selected { border-color: var(--gold); color: var(--gold); background: #c9a84c10; }
+
+  .onboard-footer {
+    padding: 20px 28px;
+    border-top: 1px solid #1a1a1a;
+    display: flex;
+    gap: 12px;
+  }
+  .onboard-footer .btn-primary { flex: 1; }
+
+  /* Notification step */
+  .notif-card {
+    background: var(--ink-light);
+    border: 1px solid #222;
+    padding: 28px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .notif-icon { font-size: 48px; margin-bottom: 16px; }
+  .notif-card h3 {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .notif-card p { font-size: 13px; color: var(--smoke); line-height: 1.6; margin-bottom: 20px; }
+  .time-display {
+    font-family: var(--font-mono);
+    font-size: 42px;
+    color: var(--gold);
+    letter-spacing: 4px;
+    margin: 20px 0;
+  }
+  .time-hint { font-family: var(--font-mono); font-size: 11px; color: var(--smoke); letter-spacing: 2px; }
+
+  /* ─── HOME ─── */
+  #home { background: var(--ink); }
+
+  .home-header {
+    background: var(--ink);
+    border-bottom: 1px solid #1a1a1a;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .home-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0 12px;
+  }
+  .home-logo {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--paper);
+  }
+  .home-logo em { color: var(--gold); font-style: italic; }
+  .home-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--smoke);
+    letter-spacing: 1px;
+    text-align: right;
+  }
+  .home-settings {
+    background: none;
+    border: none;
+    color: var(--smoke);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    transition: color .2s;
+  }
+  .home-settings:hover { color: var(--gold); }
+
+  /* Tabs */
+  .tabs-wrap {
+    overflow-x: auto;
+    scrollbar-width: none;
+    display: flex;
+    gap: 0;
+    padding-bottom: 0;
+  }
+  .tabs-wrap::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 10px 18px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--smoke);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .tab-btn:hover:not(.active) { color: var(--paper); }
+
+  /* News feed */
+  .news-feed {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+  .feed-panel { display: none; }
+  .feed-panel.active { display: block; }
+
+  .feed-loading {
+    padding: 60px 28px;
+    text-align: center;
+  }
+  .feed-loading-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse 1s ease infinite;
+    margin: 0 3px;
+  }
+  .feed-loading-dot:nth-child(2) { animation-delay: .2s; }
+  .feed-loading-dot:nth-child(3) { animation-delay: .4s; }
+  .feed-loading-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--smoke);
+    letter-spacing: 2px;
+    margin-top: 20px;
+    text-transform: uppercase;
+  }
+
+  /* Article card */
+  .article-card {
+    padding: 22px 20px;
+    border-bottom: 1px solid #141414;
+    cursor: pointer;
+    transition: background .15s;
+    animation: fadeUp .4s ease forwards;
+    opacity: 0;
+  }
+  .article-card:hover { background: #111; }
+  .article-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .article-source {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+  .article-dot { width: 3px; height: 3px; background: #333; border-radius: 50%; }
+  .article-time { font-size: 11px; color: var(--smoke); }
+  .article-headline {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    color: var(--paper);
+  }
+  .article-headline:hover { color: var(--gold); }
+  .article-summary {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .article-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .article-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: #555;
+    border: 1px solid #222;
+    padding: 3px 8px;
+    text-transform: uppercase;
+  }
+  .article-importance {
+    display: inline-block;
+    padding: 2px 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+  .importance-critical { background: #c0392b22; color: var(--red); border: 1px solid #c0392b44; }
+  .importance-high { background: #c9a84c15; color: var(--gold); border: 1px solid #c9a84c33; }
+  .importance-normal { background: #2a2a2a; color: #666; border: 1px solid #2e2e2e; }
+
+  /* Article drawer */
+  .article-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+    background: var(--ink);
+  }
+  .article-drawer.open { transform: translateY(0); }
+  .drawer-handle {
+    width: 36px; height: 4px;
+    background: #333;
+    border-radius: 2px;
+    margin: 14px auto 0;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .drawer-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .drawer-close {
+    background: none;
+    border: none;
+    color: var(--smoke);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    transition: color .2s;
+  }
+  .drawer-close:hover { color: var(--paper); }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 24px 20px 40px; }
+  .drawer-source {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .drawer-headline {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    color: var(--paper);
+  }
+  .drawer-byline {
+    font-size: 12px;
+    color: var(--smoke);
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .drawer-content { font-size: 15px; line-height: 1.75; color: #ccc; }
+  .drawer-content p { margin-bottom: 16px; }
+  .drawer-content strong { color: var(--paper); font-weight: 500; }
+  .drawer-ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #c9a84c15;
+    border: 1px solid #c9a84c33;
+    padding: 6px 12px;
+    margin-bottom: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+
+  /* Settings panel */
+  .settings-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: var(--ink);
+    transform: translateX(100%);
+    transition: transform .3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .settings-panel.open { transform: translateX(0); }
+  .settings-header {
+    padding: 20px;
+    border-bottom: 1px solid #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .settings-back {
+    background: none; border: none;
+    color: var(--smoke); font-size: 20px;
+    cursor: pointer; transition: color .2s;
+  }
+  .settings-back:hover { color: var(--gold); }
+  .settings-title { font-family: var(--font-serif); font-size: 22px; font-weight: 700; }
+  .settings-body { flex: 1; overflow-y: auto; padding: 24px 20px; }
+  .settings-section { margin-bottom: 32px; }
+  .settings-section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #1e1e1e;
+  }
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #111;
+  }
+  .settings-row-label { font-size: 14px; }
+  .settings-row-sub { font-size: 12px; color: var(--smoke); margin-top: 2px; }
+  .toggle {
+    width: 44px; height: 24px;
+    background: #222;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    border: none;
+    transition: background .2s;
+  }
+  .toggle.on { background: var(--gold); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: left .2s;
+  }
+  .toggle.on::after { left: 23px; }
+
+  /* ─── API KEY SCREEN ─── */
+  #apikey {
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+    padding: 32px 28px;
+  }
+  #apikey::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 100%, #c9a84c12, transparent);
+  }
+  .apikey-box {
+    width: 100%;
+    max-width: 420px;
+    z-index: 2;
+    animation: fadeUp .5s ease forwards;
+  }
+  .apikey-icon { font-size: 36px; margin-bottom: 16px; }
+  .apikey-title {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .apikey-desc {
+    font-size: 13px;
+    color: var(--smoke);
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+  .apikey-desc a { color: var(--gold); text-decoration: none; }
+  .apikey-desc a:hover { text-decoration: underline; }
+  .apikey-input-wrap { position: relative; margin-bottom: 12px; }
+  .apikey-input {
+    width: 100%;
+    background: var(--ink-light);
+    border: 1px solid #2a2a2a;
+    color: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 14px 48px 14px 16px;
+    outline: none;
+    transition: border-color .2s;
+    letter-spacing: 1px;
+  }
+  .apikey-input:focus { border-color: var(--gold); }
+  .apikey-input::placeholder { color: #444; letter-spacing: 0; }
+  .apikey-toggle {
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    color: var(--smoke); cursor: pointer;
+    font-size: 16px; padding: 4px;
+    transition: color .2s;
+  }
+  .apikey-toggle:hover { color: var(--paper); }
+  .apikey-hint {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: #444;
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .apikey-security {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #c9a84c0a;
+    border: 1px solid #c9a84c22;
+    padding: 14px;
+    margin-bottom: 24px;
+  }
+  .apikey-security-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .apikey-security-text { font-size: 12px; color: #888; line-height: 1.5; }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: .3; transform: scale(.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .refresh-btn {
+    margin: 20px;
+    width: calc(100% - 40px);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--gold);
+    color: var(--ink);
+    padding: 12px 24px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    z-index: 999;
+    opacity: 0;
+    transition: all .3s;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .empty-state {
+    padding: 60px 28px;
+    text-align: center;
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 16px; }
+  .empty-title { font-family: var(--font-serif); font-size: 20px; margin-bottom: 8px; }
+  .empty-sub { font-size: 13px; color: var(--smoke); }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash" class="screen active">
+  <div class="splash-lines"></div>
+  <div class="splash-content">
+    <div class="splash-eyebrow">Your daily intelligence</div>
+    <div class="splash-title">Morning<br><span>Brief</span></div>
+    <div class="splash-subtitle">Real news · AI summaries · 8:00 AM daily</div>
+    <button class="btn-primary" onclick="(state.groqKey && state.gnewsKey) ? showOnboarding() : switchScreen('apikey')">Get Started</button>
+  </div>
+</div>
+
+<!-- SETUP SCREEN -->
+<div id="apikey" class="screen">
+  <div style="overflow-y:auto;flex:1;display:flex;align-items:flex-start;justify-content:center;padding:32px 24px">
+  <div class="apikey-box">
+    <div class="apikey-icon">🔑</div>
+    <div class="apikey-title">Connect your free keys</div>
+    <div class="apikey-desc">Two free APIs — real news headlines + AI summaries. No credit card needed for either.</div>
+
+    <!-- GNews -->
+    <div style="margin-bottom:6px">
+      <div class="apikey-hint" style="margin-bottom:6px;color:var(--gold)">① GNEWS API KEY — real headlines</div>
+      <div class="apikey-security" style="margin-bottom:10px;border-color:#c9a84c33;background:#c9a84c08">
+        <div class="apikey-security-icon">📰</div>
+        <div class="apikey-security-text">
+          Go to <a href="https://gnews.io" target="_blank" style="color:var(--gold)">gnews.io</a> → Sign up free → copy your key from the dashboard. 100 requests/day free.
+        </div>
+      </div>
+      <div class="apikey-input-wrap" style="margin-bottom:16px">
+        <input class="apikey-input" id="gnews-key-input" type="password" placeholder="GNews API key..." autocomplete="off" spellcheck="false"/>
+        <button class="apikey-toggle" onclick="toggleVis('gnews-key-input',this)">👁</button>
+      </div>
+    </div>
+
+    <!-- Groq -->
+    <div style="margin-bottom:6px">
+      <div class="apikey-hint" style="margin-bottom:6px;color:var(--gold)">② GROQ API KEY — AI summaries</div>
+      <div class="apikey-security" style="margin-bottom:10px;border-color:#2ecc7133;background:#2ecc7108">
+        <div class="apikey-security-icon">⚡</div>
+        <div class="apikey-security-text">
+          Go to <a href="https://console.groq.com/keys" target="_blank" style="color:var(--gold)">console.groq.com/keys</a> → Sign up with Google → Create API Key. Free, no card needed.
+        </div>
+      </div>
+      <div class="apikey-input-wrap" style="margin-bottom:16px">
+        <input class="apikey-input" id="groq-key-input" type="password" placeholder="gsk_..." autocomplete="off" spellcheck="false"/>
+        <button class="apikey-toggle" onclick="toggleVis('groq-key-input',this)">👁</button>
+      </div>
+    </div>
+
+    <div class="apikey-hint" style="margin-bottom:20px">BOTH KEYS STORED LOCALLY IN YOUR BROWSER ONLY</div>
+    <button class="btn-primary" style="width:100%;margin-bottom:12px" onclick="saveKeys()">Save & Continue →</button>
+    <div id="setup-status" style="font-family:var(--font-mono);font-size:11px;text-align:center;min-height:20px"></div>
+  </div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="onboarding" class="screen">
+  <div class="onboard-header">
+    <div class="onboard-step" id="step-label">Step 1 of 2</div>
+    <div class="onboard-title" id="step-title">Pick your topics</div>
+    <div class="onboard-desc" id="step-desc">Select the news categories you care about. We'll build your personalized briefing.</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:50%"></div></div>
+  </div>
+  <div class="onboard-body" id="onboard-body"></div>
+  <div class="onboard-footer">
+    <button class="btn-ghost" id="back-btn" onclick="prevStep()" style="display:none">Back</button>
+    <button class="btn-primary" id="next-btn" onclick="nextStep()">Continue →</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="screen">
+  <div class="home-header">
+    <div class="home-top">
+      <div class="home-logo">Morning <em>Brief</em></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="home-date" id="home-date"></div>
+        <button class="home-settings" onclick="openSettings()">⚙</button>
+      </div>
+    </div>
+    <div class="tabs-wrap" id="tabs-wrap"></div>
+  </div>
+  <div class="news-feed" id="news-feed"></div>
+</div>
+
+<!-- ARTICLE DRAWER -->
+<div class="article-drawer" id="article-drawer">
+  <div class="drawer-handle" onclick="closeDrawer()"></div>
+  <div class="drawer-header">
+    <div class="drawer-source" id="drawer-source"></div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-ai-badge">⚡ AI Summary</div>
+    <div class="drawer-headline" id="drawer-headline"></div>
+    <div class="drawer-byline" id="drawer-byline"></div>
+    <div class="drawer-content" id="drawer-content"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-header">
+    <button class="settings-back" onclick="closeSettings()">←</button>
+    <div class="settings-title">Preferences</div>
+  </div>
+  <div class="settings-body">
+    <div class="settings-section">
+      <div class="settings-section-title">Notifications</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">Morning Brief</div>
+          <div class="settings-row-sub">Daily at 8:00 AM</div>
+        </div>
+        <button class="toggle on" id="notif-toggle" onclick="toggleNotif()"></button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Topics</div>
+      <div id="settings-topics"></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">API Keys</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">📰 GNews</div>
+          <div class="settings-row-sub" id="settings-gnews-hint"></div>
+        </div>
+        <button class="btn-ghost" style="padding:8px 14px;font-size:10px" onclick="closeSettings();switchScreen('apikey')">Change</button>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">⚡ Groq</div>
+          <div class="settings-row-sub" id="settings-key-hint"></div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">About</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">Powered by</div>
+          <div class="settings-row-sub">GNews · Groq llama-3.3-70b · Free tier</div>
+        </div>
+        <span style="color:var(--gold)">⚡</span>
+      </div>
+    </div>
+    <button class="btn-ghost refresh-btn" onclick="resetApp()">Reset & Reconfigure</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───
+const CATEGORIES = [
+  {
+    id: 'geopolitics', icon: '🌍', name: 'Geopolitics', sub: 'Global affairs & diplomacy',
+    subcats: ['United States','China','Russia','Europe','Middle East','Africa','India','Southeast Asia','Latin America','Arctic & Oceans']
+  },
+  {
+    id: 'sports', icon: '⚽', name: 'Sports', sub: 'Scores, transfers & analysis',
+    subcats: ['Football / Soccer','Basketball','Tennis','Formula 1','Cricket','American Football','Baseball','Rugby','Golf','Olympics']
+  },
+  {
+    id: 'tech', icon: '💻', name: 'Technology', sub: 'AI, startups & big tech',
+    subcats: ['Artificial Intelligence','Startups & VC','Big Tech','Crypto & Web3','Cybersecurity','Space Tech','Consumer Tech','Robotics']
+  },
+  {
+    id: 'science', icon: '🔬', name: 'Science', sub: 'Discoveries & research',
+    subcats: ['Climate & Environment','Medicine & Health','Space & Astronomy','Physics','Biology','Archaeology','Psychology']
+  },
+  {
+    id: 'markets', icon: '📈', name: 'Markets', sub: 'Stocks, forex & economy',
+    subcats: ['Stock Markets','Forex','Commodities','Macroeconomics','Central Banks','Real Estate','Crypto Markets']
+  },
+  {
+    id: 'culture', icon: '🎭', name: 'Culture', sub: 'Arts, film, books & trends',
+    subcats: ['Film & TV','Music','Books & Literature','Art & Design','Food & Travel','Fashion','Gaming']
+  },
+];
+
+// GNews topic mapping
+const GNEWS_TOPIC = {
+  geopolitics: 'world', sports: 'sports', tech: 'technology',
+  science: 'science', markets: 'business', culture: 'entertainment'
+};
+
+// Sub-category keyword overrides for GNews search
+const SUB_KW = {
+  'United States':'United States politics','China':'China news','Russia':'Russia news',
+  'Europe':'Europe news','Middle East':'Middle East','Africa':'Africa news',
+  'India':'India news','Southeast Asia':'Southeast Asia','Latin America':'Latin America',
+  'Football / Soccer':'soccer football','Basketball':'basketball NBA','Tennis':'tennis',
+  'Formula 1':'Formula 1 F1','Cricket':'cricket','American Football':'NFL football',
+  'Baseball':'MLB baseball','Rugby':'rugby','Golf':'golf','Olympics':'Olympics',
+  'Artificial Intelligence':'artificial intelligence AI','Startups & VC':'startup venture capital',
+  'Big Tech':'Google Apple Microsoft Meta Amazon','Crypto & Web3':'cryptocurrency bitcoin blockchain',
+  'Cybersecurity':'cybersecurity hacking','Space Tech':'space rocket satellite',
+  'Consumer Tech':'smartphone gadget Apple Samsung','Robotics':'robotics automation',
+  'Stock Markets':'stock market Wall Street','Forex':'forex currency exchange rate',
+  'Commodities':'oil gold commodities','Macroeconomics':'economy GDP inflation',
+  'Central Banks':'Federal Reserve central bank interest rates','Real Estate':'real estate housing market',
+  'Crypto Markets':'bitcoin ethereum crypto price','Climate & Environment':'climate change environment',
+  'Medicine & Health':'medicine health breakthrough','Space & Astronomy':'space NASA astronomy',
+  'Physics':'physics research','Biology':'biology science','Archaeology':'archaeology discovery',
+  'Psychology':'psychology mental health research','Film & TV':'film movie TV series',
+  'Music':'music artist album','Books & Literature':'books literature author',
+  'Art & Design':'art design exhibition','Food & Travel':'food travel',
+  'Fashion':'fashion designer','Gaming':'video games gaming'
+};
+
+let state = {
+  step: 1, selectedCats: [], selectedSubs: {}, activeTab: null,
+  notifEnabled: false, notifTimer: null, newsCache: {},
+  groqKey: localStorage.getItem('mb_groq_key') || '',
+  gnewsKey: localStorage.getItem('mb_gnews_key') || '',
+};
+
+// ─── KEY SETUP ───
+function toggleVis(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+function saveKeys() {
+  const gnews = document.getElementById('gnews-key-input').value.trim();
+  const groq = document.getElementById('groq-key-input').value.trim();
+  const status = document.getElementById('setup-status');
+  if (!gnews) { status.style.color='var(--red)'; status.textContent='✗ Enter your GNews API key'; return; }
+  if (!groq.startsWith('gsk_')) { status.style.color='var(--red)'; status.textContent='✗ Groq key should start with gsk_…'; return; }
+  localStorage.setItem('mb_gnews_key', gnews);
+  localStorage.setItem('mb_groq_key', groq);
+  state.gnewsKey = gnews; state.groqKey = groq;
+  status.style.color='#2ecc71'; status.textContent='✓ Connected!';
+  setTimeout(() => showOnboarding(), 600);
+}
+
+// ─── ONBOARDING ───
+function showOnboarding() { switchScreen('onboarding'); renderStep(); }
+
+function renderStep() {
+  const body = document.getElementById('onboard-body');
+  const fill = document.getElementById('progress-fill');
+  const backBtn = document.getElementById('back-btn');
+  const nextBtn = document.getElementById('next-btn');
+
+  if (state.step === 1) {
+    fill.style.width = '50%';
+    document.getElementById('step-label').textContent = 'Step 1 of 2';
+    document.getElementById('step-title').textContent = 'Pick your topics';
+    document.getElementById('step-desc').textContent = 'Choose categories and sub-topics for your Morning Brief.';
+    backBtn.style.display = 'none'; nextBtn.textContent = 'Continue →';
+
+    let html = '<div class="cat-grid">';
+    CATEGORIES.forEach(cat => {
+      const sel = state.selectedCats.includes(cat.id) ? 'selected' : '';
+      html += `<div class="cat-card ${sel}" onclick="toggleCat('${cat.id}')"><div class="cat-check">✓</div><div class="cat-icon">${cat.icon}</div><div class="cat-name">${cat.name}</div><div class="cat-sub">${cat.sub}</div></div>`;
+    });
+    html += '</div>';
+    state.selectedCats.forEach(catId => {
+      const cat = CATEGORIES.find(c => c.id === catId);
+      const subs = state.selectedSubs[catId] || [];
+      html += `<div class="subcats-section"><div class="subcats-label"><span>${cat.icon}</span> ${cat.name}</div><div class="tags-wrap">`;
+      cat.subcats.forEach(sub => {
+        html += `<div class="tag ${subs.includes(sub)?'selected':''}" onclick="toggleSub('${catId}','${sub}')">${sub}</div>`;
+      });
+      html += '</div></div>';
+    });
+    body.innerHTML = html;
+  } else {
+    fill.style.width = '100%';
+    document.getElementById('step-label').textContent = 'Step 2 of 2';
+    document.getElementById('step-title').textContent = 'Enable notifications';
+    document.getElementById('step-desc').textContent = 'Get your Morning Brief at 8:00 AM every day.';
+    backBtn.style.display = 'block'; nextBtn.textContent = 'Launch my Brief →';
+    body.innerHTML = `<div class="notif-card">
+      <div class="notif-icon">🔔</div><h3>Your daily alarm for global intelligence</h3>
+      <p>Real headlines from GNews, summarized by AI — every morning before you open social media.</p>
+      <div class="time-display">08:00</div><div class="time-hint">EVERY MORNING</div><br/><br/>
+      <button class="btn-primary" onclick="requestNotif()" style="width:100%">Allow Notifications</button>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--smoke);text-align:center;line-height:1.6">No spam, no ads — ever.</div>`;
+  }
+}
+
+function toggleCat(id) {
+  const idx = state.selectedCats.indexOf(id);
+  if (idx > -1) { state.selectedCats.splice(idx, 1); delete state.selectedSubs[id]; }
+  else { state.selectedCats.push(id); state.selectedSubs[id] = []; }
+  renderStep();
+}
+
+function toggleSub(catId, sub) {
+  if (!state.selectedSubs[catId]) state.selectedSubs[catId] = [];
+  const arr = state.selectedSubs[catId];
+  const idx = arr.indexOf(sub);
+  if (idx > -1) arr.splice(idx, 1); else arr.push(sub);
+  renderStep();
+}
+
+function prevStep() { state.step = 1; renderStep(); }
+function nextStep() {
+  if (state.step === 1) { if (!state.selectedCats.length) { showToast('Pick at least one topic'); return; } state.step = 2; renderStep(); }
+  else launchHome();
+}
+
+async function requestNotif() {
+  if (!('Notification' in window)) { showToast('Notifications not supported'); return; }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') { state.notifEnabled = true; scheduleNotification(); showToast('Notifications enabled!'); }
+  else showToast('Permission denied');
+}
+
+function scheduleNotification() {
+  if (state.notifTimer) clearTimeout(state.notifTimer);
+  const next8 = new Date(); next8.setHours(8,0,0,0);
+  if (next8 <= new Date()) next8.setDate(next8.getDate() + 1);
+  state.notifTimer = setTimeout(() => {
+    new Notification('Morning Brief ☀️', { body: `Real headlines ready across ${state.selectedCats.length} topics.` });
+    scheduleNotification();
+  }, next8 - new Date());
+}
+
+// ─── HOME ───
+function launchHome() {
+  switchScreen('home');
+  const now = new Date();
+  document.getElementById('home-date').textContent = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).toUpperCase();
+  renderTabs();
+  if (state.selectedCats.length) loadNews(state.selectedCats[0]);
+}
+
+function renderTabs() {
+  const wrap = document.getElementById('tabs-wrap'), feed = document.getElementById('news-feed');
+  wrap.innerHTML = ''; feed.innerHTML = '';
+  state.selectedCats.forEach((catId, i) => {
+    const cat = CATEGORIES.find(c => c.id === catId);
+    if (i === 0) state.activeTab = catId;
+    const btn = document.createElement('button');
+    btn.className = `tab-btn ${i===0?'active':''}`;
+    btn.dataset.tab = catId; btn.innerHTML = `${cat.icon} ${cat.name}`;
+    btn.onclick = () => switchTab(catId); wrap.appendChild(btn);
+    const panel = document.createElement('div');
+    panel.className = `feed-panel ${i===0?'active':''}`; panel.id = `panel-${catId}`;
+    feed.appendChild(panel);
+  });
+}
+
+function switchTab(catId) {
+  state.activeTab = catId;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === catId));
+  document.querySelectorAll('.feed-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${catId}`));
+  const panel = document.getElementById(`panel-${catId}`);
+  if (!panel.dataset.loaded) loadNews(catId);
+}
+
+// ─── CORE: GNews → Groq ───
+async function loadNews(catId) {
+  const panel = document.getElementById(`panel-${catId}`);
+  if (!panel) return;
+  panel.dataset.loaded = 'true';
+  if (state.newsCache[catId]) { renderNews(catId, state.newsCache[catId]); return; }
+
+  panel.innerHTML = `<div class="feed-loading"><div><span class="feed-loading-dot"></span><span class="feed-loading-dot"></span><span class="feed-loading-dot"></span></div><div class="feed-loading-text" id="loading-text-${catId}">Fetching real headlines…</div></div>`;
+
+  try {
+    const raw = await fetchGNews(catId);
+    if (!raw.length) throw new Error('No articles from GNews. Check your API key.');
+    const lt = document.getElementById(`loading-text-${catId}`);
+    if (lt) lt.textContent = 'AI summarizing…';
+    const enriched = await groqEnrich(catId, raw);
+    state.newsCache[catId] = enriched;
+    renderNews(catId, enriched);
+  } catch(e) {
+    console.error(e);
+    panel.innerHTML = `<div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Couldn't load news</div><div class="empty-sub">${e.message}</div><br/><button class="btn-ghost" onclick="retryLoad('${catId}')">Retry</button></div>`;
+  }
+}
+
+async function fetchGNews(catId) {
+  const subs = state.selectedSubs[catId] || [];
+  let gnewsUrl;
+  if (subs.length > 0) {
+    const q = subs.map(s => SUB_KW[s] || s).join(' OR ');
+    gnewsUrl = `https://gnews.io/api/v4/search?q=${encodeURIComponent(q)}&lang=en&max=10&sortby=publishedAt&apikey=${state.gnewsKey}`;
+  } else {
+    const topic = GNEWS_TOPIC[catId] || 'world';
+    gnewsUrl = `https://gnews.io/api/v4/top-headlines?topic=${topic}&lang=en&max=10&apikey=${state.gnewsKey}`;
+  }
+
+  // Route through CORS proxy so GitHub Pages can reach GNews
+  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(gnewsUrl)}`;
+
+  const res = await fetch(proxyUrl);
+  if (!res.ok) throw new Error(`Proxy error ${res.status} — please retry`);
+
+  const outer = await res.json();
+  if (!outer.contents) throw new Error('Empty response from proxy — please retry');
+
+  let data;
+  try { data = JSON.parse(outer.contents); }
+  catch { throw new Error('Could not parse GNews response — check your GNews API key in Settings'); }
+
+  if (data.errors) throw new Error(data.errors[0] || 'GNews API error — check your key in Settings');
+
+  return (data.articles || []).slice(0, 10);
+}
+
+async function groqEnrich(catId, articles) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  const list = articles.map((a, i) =>
+    `${i+1}. TITLE: ${a.title}\n   SOURCE: ${a.source?.name||'Unknown'}\n   PUBLISHED: ${a.publishedAt}\n   DESCRIPTION: ${a.description||'N/A'}\n   URL: ${a.url}`
+  ).join('\n\n');
+
+  const prompt = `You are a senior news editor. Below are REAL articles just fetched from GNews for category "${cat.name}". 
+Do NOT invent anything — only use the information provided.
+
+${list}
+
+Return a JSON array (no markdown, no extra text) where each item has:
+- "headline": punchy rewrite of the title (factual, keep it real)
+- "source": source name from the article
+- "time": human-friendly time ago based on publishedAt (today is ${new Date().toISOString().split('T')[0]})
+- "summary": 2 crisp sentences strictly from the article description
+- "tags": 2-3 short topic tags
+- "importance": "critical", "high", or "normal"
+- "body": 2-3 paragraph editorial summary using ONLY facts from the provided description. Do not add invented details.
+- "url": the original article URL`;
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${state.groqKey}` },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.2,
+      max_tokens: 2500,
+      messages: [{ role:'user', content: prompt }]
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `Groq error ${res.status} — check your Groq key in Settings`);
+  }
+  const data = await res.json();
+  const text = data.choices?.[0]?.message?.content || '';
+  const match = text.replace(/^```json\s*|^```\s*|```\s*$/gm,'').trim().match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('Could not parse AI response — please retry');
+  return JSON.parse(match[0]);
+}
+
+function retryLoad(catId) {
+  delete state.newsCache[catId];
+  const panel = document.getElementById(`panel-${catId}`);
+  if (panel) panel.dataset.loaded = '';
+  loadNews(catId);
+}
+
+function renderNews(catId, articles) {
+  const panel = document.getElementById(`panel-${catId}`);
+  if (!panel) return;
+  panel.innerHTML = articles.map((a, i) => {
+    const impClass = a.importance==='critical'?'importance-critical':a.importance==='high'?'importance-high':'importance-normal';
+    const tags = (a.tags||[]).map(t=>`<span class="article-tag">${t}</span>`).join('');
+    return `<div class="article-card" style="animation-delay:${i*.06}s" onclick="openArticle('${catId}',${i})">
+      <div class="article-meta"><span class="article-source">${a.source}</span><span class="article-dot"></span><span class="article-time">${a.time}</span><span class="article-importance ${impClass}" style="margin-left:auto">${a.importance}</span></div>
+      <div class="article-headline">${a.headline}</div>
+      <div class="article-summary">${a.summary}</div>
+      <div class="article-tags">${tags}</div>
+    </div>`;
+  }).join('');
+}
+
+function openArticle(catId, idx) {
+  const a = state.newsCache[catId]?.[idx];
+  if (!a) return;
+  document.getElementById('drawer-source').textContent = a.source;
+  document.getElementById('drawer-headline').textContent = a.headline;
+  document.getElementById('drawer-byline').textContent = `${a.time} · ${a.source}`;
+  const bodyHtml = (a.body||a.summary).split('\n\n').map(p=>`<p>${p}</p>`).join('');
+  const link = a.url ? `<p style="margin-top:20px"><a href="${a.url}" target="_blank" style="color:var(--gold);font-family:var(--font-mono);font-size:12px;letter-spacing:1px">READ FULL ARTICLE ↗</a></p>` : '';
+  document.getElementById('drawer-content').innerHTML = bodyHtml + link;
+  document.getElementById('article-drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  document.getElementById('article-drawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ─── SETTINGS ───
+function openSettings() {
+  document.getElementById('settings-topics').innerHTML = state.selectedCats.map(catId => {
+    const cat = CATEGORIES.find(c => c.id === catId);
+    const subs = state.selectedSubs[catId] || [];
+    return `<div class="settings-row"><div><div class="settings-row-label">${cat.icon} ${cat.name}</div><div class="settings-row-sub">${subs.length?subs.join(', '):'All sub-topics'}</div></div></div>`;
+  }).join('');
+  const gh = document.getElementById('settings-gnews-hint');
+  const gk = document.getElementById('settings-key-hint');
+  if (gh) gh.textContent = state.gnewsKey ? '···'+state.gnewsKey.slice(-5)+' · gnews.io' : 'Not set';
+  if (gk) gk.textContent = state.groqKey ? 'gsk_···'+state.groqKey.slice(-5)+' · groq.com' : 'Not set';
+  document.getElementById('notif-toggle').classList.toggle('on', state.notifEnabled);
+  document.getElementById('settings-panel').classList.add('open');
+}
+
+function closeSettings() { document.getElementById('settings-panel').classList.remove('open'); }
+
+function toggleNotif() {
+  if (!state.notifEnabled) requestNotif();
+  else { state.notifEnabled=false; clearTimeout(state.notifTimer); document.getElementById('notif-toggle').classList.remove('on'); }
+}
+
+function resetApp() {
+  if (!confirm('Reset all preferences and API keys?')) return;
+  localStorage.clear();
+  state = { step:1,selectedCats:[],selectedSubs:{},activeTab:null,notifEnabled:false,notifTimer:null,newsCache:{},groqKey:'',gnewsKey:'' };
+  closeSettings(); switchScreen('apikey');
+}
+
+// ─── UTILS ───
+function switchScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ─── INIT ───
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('splash').classList.add('active');
+  // Pre-fill saved keys into setup form if returning user hits "Change"
+  if (state.gnewsKey) document.getElementById('gnews-key-input').value = state.gnewsKey;
+  if (state.groqKey) document.getElementById('groq-key-input').value = state.groqKey;
+});
+
+
+</script>
+</body>
+</html>

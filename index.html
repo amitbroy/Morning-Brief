@@ -1105,14 +1105,15 @@ async function fetchGNews(catId) {
   const subs = state.selectedSubs[catId] || [];
   const category = TNAPI_CATEGORY[catId] || 'general';
 
+  // Top-tier sources only
+  const SOURCES = 'bbc.co.uk,cnn.com,foxnews.com,cnbc.com,reuters.com,apnews.com,theguardian.com,bloomberg.com,nytimes.com,washingtonpost.com,forbes.com,ft.com,aljazeera.com,nbcnews.com,abcnews.go.com,cbsnews.com,politico.com,axios.com,theatlantic.com,economist.com';
+
   let url;
   if (subs.length > 0) {
-    // Keyword search mode
     const q = subs.map(s => SUB_KW[s] || s).join(' OR ');
-    url = `https://api.thenewsapi.com/v1/news/all?api_token=${state.gnewsKey}&search=${encodeURIComponent(q)}&language=en&limit=10&sort=published_at`;
+    url = `https://api.thenewsapi.com/v1/news/all?api_token=${state.gnewsKey}&search=${encodeURIComponent(q)}&language=en&limit=10&sort=published_at&domains=${SOURCES}`;
   } else {
-    // Top headlines by category
-    url = `https://api.thenewsapi.com/v1/news/top?api_token=${state.gnewsKey}&categories=${category}&language=en&limit=10`;
+    url = `https://api.thenewsapi.com/v1/news/top?api_token=${state.gnewsKey}&categories=${category}&language=en&limit=10&domains=${SOURCES}`;
   }
 
   const res = await fetch(url);
@@ -1121,10 +1122,20 @@ async function fetchGNews(catId) {
     throw new Error(err?.message || `TheNewsAPI error ${res.status} — check your API token in Settings`);
   }
   const data = await res.json();
-  if (!data.data?.length) throw new Error('No articles returned — try different sub-topics or check your API token');
 
-  // Normalize to consistent shape
-  return data.data.slice(0, 10).map(a => ({
+  // If no results from premium sources, fall back without source filter
+  if (!data.data?.length) {
+    const fallback = await fetch(url.replace(`&domains=${SOURCES}`, ''));
+    const fdata = await fallback.json().catch(() => ({}));
+    if (!fdata.data?.length) throw new Error('No articles returned — try different sub-topics or check your API token');
+    return normArticles(fdata.data);
+  }
+
+  return normArticles(data.data);
+}
+
+function normArticles(items) {
+  return items.slice(0, 10).map(a => ({
     title: a.title,
     description: a.description || a.snippet || '',
     url: a.url,
